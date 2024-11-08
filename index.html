@@ -1,131 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tree-sitter Custom Grammar</title>
-  <style>
-    .playground-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
-    }
-
-    .editor-container {
-      display: flex;
-      gap: 1rem;
-    }
-
-    #source-code, #tree-output {
-      width: 100%;
-      height: 400px;
-      font-family: monospace;
-      padding: 0.5rem;
-    }
-
-    #tree-output {
-      white-space: pre;
-      overflow: auto;
-      background: #f5f5f5;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>codeowners.org</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.45.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/clusterize.js/0.18.0/clusterize.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .CodeMirror {
+        height: 100% !important;
+      }
+      .CodeMirror div.CodeMirror-cursor {
+        border-left: 3px solid red;
+      }
+      .query-error {
+        text-decoration: underline red dashed;
+        -webkit-text-decoration: underline red dashed;
+      }
+    </style>
 </head>
-<body>
-  Testing
-  <div class="playground-container">
-    <div class="editor-container">
-      <textarea id="source-code">// Enter your code here</textarea>
-      <pre id="tree-output"></pre>
+<body class="m-0 p-0 min-h-screen bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="text-center mb-16">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">CODEOWNERS</h1>
+            <p class="text-xl text-gray-600">The official CODEOWNERS grammar and parser</p>
+        </header>
+
+        <main>
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">What is CODEOWNERS?</h2>
+                <p class="text-gray-700 mb-4">
+                    CODEOWNERS is a simple yet powerful way to define ownership rules for your codebase.
+                    It helps teams automatically route code reviews, enforce permissions, and maintain clear
+                    ownership boundaries in repositories.
+                </p>
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Key Benefits:</h3>
+                    <ul class="list-disc pl-6 text-gray-700">
+                        <li>Automatic PR reviewer assignment</li>
+                        <li>Clear ownership documentation</li>
+                        <li>Enforced review requirements</li>
+                        <li>Simplified permissions management</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Original GitHub Syntax</h2>
+                <p class="text-gray-700 mb-4">
+                    The original GitHub CODEOWNERS syntax provides a straightforward way to map paths to owners:
+                </p>
+                <div class="bg-gray-800 rounded-lg p-6 mb-4">
+                    <pre class="text-green-400"><code># Basic syntax
+/path/to/code   @username
+*.js            @frontend-team
+/docs/*         @docs-team @technical-writers
+
+# Comments explain ownership
+/backend/*      @backend-team  # Inline comments expand on explanation</code></pre>
+                </div>
+            </section>
+
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Extended Syntax</h2>
+                <p class="text-gray-700 mb-4">
+                    The extended CODEOWNERS syntax adds powerful features for more complex ownership patterns:
+                </p>
+                <div class="bg-gray-800 rounded-lg p-6 mb-4">
+                    <pre class="text-green-400"><code># Selection strategies
+/frontend/*   @org/web-team:random(2)  # Randomly select 2 reviewers
+/backend/*    @org/backend:least_busy(3)  # Select 3 least busy members
+/core/*       @org/platform:all  # Require all team members
+
+# Mixed ownership types
+/shared/*     @username dev-lead@company.com @org/team</code></pre>
+                </div>
+            </section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Playground</h2>
+            <div id="playground-container" class="bg-white rounded-lg shadow-sm">
+                <header class="flex items-center px-5 py-4 h-[60px] border-b border-gray-300 gap-8">
+                    <div class="flex items-center gap-2">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="logging-checkbox">log</label>
+                        <input id="logging-checkbox" type="checkbox" class="align-middle">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="query-checkbox">query</label>
+                        <input id="query-checkbox" type="checkbox" class="align-middle">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="update-time">parse time:</label>
+                        <span id="update-time"></span>
+                    </div>
+                </header>
+
+                <main class="flex min-h-[500px]">
+                    <div class="flex flex-col flex-1 border-r border-gray-300">
+                        <div id="code-container" class="flex flex-1 border-b border-gray-300">
+                            <textarea id="code-input" class="w-full"># Basic ownership
+*.js      @frontend-team
+*.py      @backend-team
+/docs/*   @docs-team</textarea>
+                        </div>
+                        <div id="query-container" class="flex h-[30%] hidden">
+                            <textarea id="query-input" class="w-full"></textarea>
+                        </div>
+                    </div>
+                    <div id="output-container-scroll" class="flex-1 overflow-auto">
+                        <pre id="output-container" class="px-3 m-0"></pre>
+                    </div>
+                </main>
+            </div>
+        </main>
     </div>
-  </div>
 
-  <script>
-    let Parser;
-
-    async function initializeParser() {
-      // Load the WASM module for your custom grammar
-      const wasmUrl = './tree-sitter.wasm';
-      const wasmModule = await WebAssembly.instantiateStreaming(
-        fetch(wasmUrl),
-        {
-          env: {
-            memory: new WebAssembly.Memory({ initial: 2048, maximum: 2048 })
-          }
-        }
-      );
-
-      Parser = wasmModule.instance.exports;
-      return Parser;
-    }
-
-    async function parseCode(sourceCode) {
-      const inputPtr = Parser.malloc(sourceCode.length);
-      const input = new Uint8Array(Parser.memory.buffer, inputPtr, sourceCode.length);
-
-      // Copy input string to WASM memory
-      for (let i = 0; i < sourceCode.length; i++) {
-        input[i] = sourceCode.charCodeAt(i);
-      }
-
-      // Parse the input
-      const treePtr = Parser.parse(inputPtr, sourceCode.length);
-
-      // Get the resulting tree
-      const tree = formatTree(treePtr);
-
-      // Clean up
-      Parser.free(inputPtr);
-      return tree;
-    }
-
-    function formatTree(nodePtr, level = 0) {
-      if (nodePtr === 0) return '';
-
-      const type = Parser.node_type(nodePtr);
-      const childCount = Parser.node_child_count(nodePtr);
-      const startByte = Parser.node_start_byte(nodePtr);
-      const endByte = Parser.node_end_byte(nodePtr);
-
-      const indent = '  '.repeat(level);
-      let result = `${indent}${type}`;
-
-      if (childCount === 0) {
-        const text = document.getElementById('source-code').value.substring(startByte, endByte);
-        result += `: "${text}"`;
-      }
-
-      result += '\n';
-
-      // Format children
-      for (let i = 0; i < childCount; i++) {
-        const childPtr = Parser.node_child(nodePtr, i);
-        result += formatTree(childPtr, level + 1);
-      }
-
-      return result;
-    }
-
-    // Initialize playground
-    async function initPlayground() {
-      await initializeParser();
-      const sourceCodeElement = document.getElementById('source-code');
-      const treeOutput = document.getElementById('tree-output');
-
-      // Update parse tree when source code changes
-      sourceCodeElement.addEventListener('input', async () => {
-        try {
-          const sourceCode = sourceCodeElement.value;
-          const formattedTree = await parseCode(sourceCode);
-          treeOutput.textContent = formattedTree;
-        } catch (error) {
-          treeOutput.textContent = `Error: ${error.message}`;
-        }
-      });
-    }
-
-    initPlayground().catch(error => {
-      document.getElementById('tree-output').textContent = `Initialization Error: ${error.message}`;
-    });
-  </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.45.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clusterize.js/0.18.0/clusterize.min.js"></script>
+    <script src="tree-sitter.js"></script>
+    <script src="playground.js"></script>
 </body>
 </html>
