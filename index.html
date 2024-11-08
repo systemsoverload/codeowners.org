@@ -1,201 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mentor Matching Tool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Tree-sitter Custom Grammar</title>
+  <style>
+    .playground-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .editor-container {
+      display: flex;
+      gap: 1rem;
+    }
+
+    #source-code, #tree-output {
+      width: 100%;
+      height: 400px;
+      font-family: monospace;
+      padding: 0.5rem;
+    }
+
+    #tree-output {
+      white-space: pre;
+      overflow: auto;
+      background: #f5f5f5;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-
-const EXAMPLE_SNIPPETS = {
-  'basic': `# Basic ownership
-*.js @frontend-team
-*.py @backend-team
-/docs/* @docs-team`,
-  
-  'selection-strategies': `# Selection strategies
-/frontend/* @org/web-team:random(2)
-/backend/* @org/backend:least_busy(3)
-/core/* @org/platform:all`,
-  
-  'mixed-owners': `# Mixed ownership types
-/shared/* @username dev-lead@company.com @org/team
-/tests/* @qa-team @testing-lead @org/qa:random(2)
-/docs/* docs@company.com @technical-writers`,
-
-  'windows-paths': `# Windows-style paths
-C:\\Program Files\\App @desktop-team
-C:\\Users\\* @user-management
-"Program Files\\App" @windows-team`
-};
-
-const CODEOWNERSPlayground = () => {
-  const [content, setContent] = useState(EXAMPLE_SNIPPETS['basic']);
-  const [activeExample, setActiveExample] = useState('basic');
-
-  const loadExample = (key) => {
-    setContent(EXAMPLE_SNIPPETS[key]);
-    setActiveExample(key);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <header className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">CODEOWNERS.org</h1>
-        <p className="text-xl text-gray-600">Define and enforce code ownership in your repositories</p>
-      </header>
-
-      <main>
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">What is CODEOWNERS?</h2>
-          <p className="text-gray-700 mb-4">
-            CODEOWNERS is a simple yet powerful way to define ownership rules for your codebase. 
-            It helps teams automatically route code reviews, enforce permissions, and maintain clear 
-            ownership boundaries in repositories.
-          </p>
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <h3 className="text-lg font-semibold mb-2">Key Benefits:</h3>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>Automatic PR reviewer assignment</li>
-              <li>Clear ownership documentation</li>
-              <li>Enforced review requirements</li>
-              <li>Simplified permissions management</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Original GitHub Syntax</h2>
-          <p className="text-gray-700 mb-4">
-            The original GitHub CODEOWNERS syntax provides a straightforward way to map paths to owners:
-          </p>
-          <div className="bg-gray-800 rounded-lg p-6 mb-4">
-            <pre className="text-green-400">
-              <code>{`# Basic syntax
-/path/to/code @username
-*.js @frontend-team
-/docs/* @docs-team @technical-writers
-
-# Comments explain ownership
-/backend/* @backend-team  # Backend team owns this`}
-              </code>
-            </pre>
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Extended Syntax</h2>
-          <p className="text-gray-700 mb-4">
-            The extended CODEOWNERS syntax adds powerful features for more complex ownership patterns:
-          </p>
-          <div className="bg-gray-800 rounded-lg p-6 mb-4">
-            <pre className="text-green-400">
-              <code>{`# Selection strategies
-/frontend/* @org/web-team:random(2)  # Randomly select 2 reviewers
-/backend/* @org/backend:least_busy(3)  # Select 3 least busy members
-/core/* @org/platform:all  # Require all team members
-
-# Mixed ownership types
-/shared/* @username dev-lead@company.com @org/team`}
-              </code>
-            </pre>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <h3 className="text-lg font-semibold mb-2">New Features:</h3>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li className="mb-2">
-                <strong>Selection Strategies:</strong>
-                <ul className="list-circle pl-6 mt-1">
-                  <li><code>random(n)</code>: Randomly select n reviewers</li>
-                  <li><code>least_busy(n)</code>: Select n least busy team members</li>
-                  <li><code>all</code>: Require all team members to review</li>
-                </ul>
-              </li>
-              <li className="mb-2">
-                <strong>Email Addresses:</strong> Support for email-based ownership
-              </li>
-              <li className="mb-2">
-                <strong>Mixed Ownership:</strong> Combine users, teams, and emails
-              </li>
-              <li>
-                <strong>Enhanced Paths:</strong> Better support for Windows paths and special characters
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Interactive Playground</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex space-x-2 mb-4">
-                  {Object.entries(EXAMPLE_SNIPPETS).map(([key, _]) => (
-                    <Button
-                      key={key}
-                      variant={activeExample === key ? "default" : "outline"}
-                      onClick={() => loadExample(key)}
-                    >
-                      {key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </Button>
-                  ))}
-                </div>
-                <div className="relative">
-                  <textarea
-                    className="w-full h-64 p-4 font-mono text-sm bg-gray-800 text-green-400 rounded-lg"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    spellCheck="false"
-                  />
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Parsed Output:</h3>
-                  <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto">
-                    <code>{JSON.stringify(parseExample(content), null, 2)}</code>
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-      </main>
-
-      <footer className="text-center text-gray-600 mt-16">
-        <p>For more information, visit the <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners" className="text-blue-600 hover:underline">GitHub CODEOWNERS documentation</a></p>
-      </footer>
+  <div class="playground-container">
+    <div class="editor-container">
+      <textarea id="source-code">// Enter your code here</textarea>
+      <pre id="tree-output"></pre>
     </div>
-  );
-};
+  </div>
 
-// Mock parser function - replace with actual parser
-const parseExample = (content) => {
-  const lines = content.split('\n');
-  return lines.map(line => {
-    if (line.trim().startsWith('#')) {
-      return { type: 'comment', content: line.trim() };
+  <script>
+    let Parser;
+
+    async function initializeParser() {
+      // Load the WASM module for your custom grammar
+      const wasmUrl = './tree-sitter.wasm';
+      const wasmModule = await WebAssembly.instantiateStreaming(
+        fetch(wasmUrl),
+        {
+          env: {
+            memory: new WebAssembly.Memory({ initial: 2048, maximum: 2048 })
+          }
+        }
+      );
+
+      Parser = wasmModule.instance.exports;
+      return Parser;
     }
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 2) return null;
-    return {
-      type: 'rule',
-      path: parts[0],
-      owners: parts.slice(1)
-    };
-  }).filter(Boolean);
-};
 
-export default CODEOWNERSPlayground;
-    </script>
+    async function parseCode(sourceCode) {
+      const inputPtr = Parser.malloc(sourceCode.length);
+      const input = new Uint8Array(Parser.memory.buffer, inputPtr, sourceCode.length);
+
+      // Copy input string to WASM memory
+      for (let i = 0; i < sourceCode.length; i++) {
+        input[i] = sourceCode.charCodeAt(i);
+      }
+
+      // Parse the input
+      const treePtr = Parser.parse(inputPtr, sourceCode.length);
+
+      // Get the resulting tree
+      const tree = formatTree(treePtr);
+
+      // Clean up
+      Parser.free(inputPtr);
+      return tree;
+    }
+
+    function formatTree(nodePtr, level = 0) {
+      if (nodePtr === 0) return '';
+
+      const type = Parser.node_type(nodePtr);
+      const childCount = Parser.node_child_count(nodePtr);
+      const startByte = Parser.node_start_byte(nodePtr);
+      const endByte = Parser.node_end_byte(nodePtr);
+
+      const indent = '  '.repeat(level);
+      let result = `${indent}${type}`;
+
+      if (childCount === 0) {
+        const text = document.getElementById('source-code').value.substring(startByte, endByte);
+        result += `: "${text}"`;
+      }
+
+      result += '\n';
+
+      // Format children
+      for (let i = 0; i < childCount; i++) {
+        const childPtr = Parser.node_child(nodePtr, i);
+        result += formatTree(childPtr, level + 1);
+      }
+
+      return result;
+    }
+
+    // Initialize playground
+    async function initPlayground() {
+      await initializeParser();
+      const sourceCodeElement = document.getElementById('source-code');
+      const treeOutput = document.getElementById('tree-output');
+
+      // Update parse tree when source code changes
+      sourceCodeElement.addEventListener('input', async () => {
+        try {
+          const sourceCode = sourceCodeElement.value;
+          const formattedTree = await parseCode(sourceCode);
+          treeOutput.textContent = formattedTree;
+        } catch (error) {
+          treeOutput.textContent = `Error: ${error.message}`;
+        }
+      });
+    }
+
+    initPlayground().catch(error => {
+      document.getElementById('tree-output').textContent = `Initialization Error: ${error.message}`;
+    });
+  </script>
 </body>
 </html>
