@@ -45,10 +45,7 @@
       // Load the WASM module for your custom grammar
       const wasmUrl = './tree-sitter.wasm';
       const wasmModule = await WebAssembly.instantiateStreaming(
-        fetch(wasmUrl, {
-          headers: {
-            'Accept': 'application/wasm'
-          }}),
+        fetch(wasmUrl),
         {
           env: {
             memory: new WebAssembly.Memory({ initial: 2048, maximum: 2048 })
