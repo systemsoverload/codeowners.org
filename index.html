@@ -10,6 +10,7 @@
     <style>
       .CodeMirror {
         height: 100% !important;
+        width: 100% !important;
       }
       .CodeMirror div.CodeMirror-cursor {
         border-left: 3px solid red;
@@ -17,6 +18,13 @@
       .query-error {
         text-decoration: underline red dashed;
         -webkit-text-decoration: underline red dashed;
+      }
+      .section-label {
+        @apply px-3 py-2 font-medium text-sm text-gray-600 bg-gray-100 border-b border-gray-300;
+      }
+
+      .ast-line{
+        font-size: small;
       }
     </style>
 </head>
@@ -54,18 +62,18 @@
                 <div class="bg-gray-800 rounded-lg p-6 mb-4">
                     <pre class="text-green-400"><code># Basic syntax
 /path/to/code   @username
-*.js            @frontend-team
-/docs/*         @docs-team @technical-writers
+*.js            @org/frontend-team
+/docs/*         @org/docs-team alice@example.com
 
 # Comments explain ownership
-/backend/*      @backend-team  # Inline comments expand on explanation</code></pre>
+/backend/*      @org/backend-team  # Inline comments expand on explanation</code></pre>
                 </div>
             </section>
 
             <section class="mb-12">
                 <h2 class="text-2xl font-semibold text-gray-900 mb-4">Extended Syntax</h2>
                 <p class="text-gray-700 mb-4">
-                    The extended CODEOWNERS syntax adds powerful features for more complex ownership patterns:
+                    The extended CODEOWNERS syntax adds powerful features for applying review logic for groups of users:
                 </p>
                 <div class="bg-gray-800 rounded-lg p-6 mb-4">
                     <pre class="text-green-400"><code># Selection strategies
@@ -74,45 +82,131 @@
 /core/*       @org/platform:all  # Require all team members
 
 # Mixed ownership types
-/shared/*     @username dev-lead@company.com @org/team</code></pre>
+/shared/*     dev-lead@example.com @org/team:random # strategy args are optional</code></pre>
                 </div>
             </section>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Playground</h2>
-            <div id="playground-container" class="bg-white rounded-lg shadow-sm">
-                <header class="flex items-center px-5 py-4 h-[60px] border-b border-gray-300 gap-8">
-                    <div class="flex items-center gap-2">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label for="logging-checkbox">log</label>
-                        <input id="logging-checkbox" type="checkbox" class="align-middle">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label for="query-checkbox">query</label>
-                        <input id="query-checkbox" type="checkbox" class="align-middle">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label for="update-time">parse time:</label>
-                        <span id="update-time"></span>
-                    </div>
-                </header>
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Using the Playground</h2>
+                <p class="text-gray-700 mb-4">
+                  The CODEOWNERS playground allows you to test and visualize your CODEOWNERS rules, understand the syntax tree, and validate your ownership patterns.
+                </p>
 
-                <main class="flex min-h-[500px]">
-                    <div class="flex flex-col flex-1 border-r border-gray-300">
-                        <div id="code-container" class="flex flex-1 border-b border-gray-300">
-                            <textarea id="code-input" class="w-full"># Basic ownership
-*.js      @frontend-team
-*.py      @backend-team
-/docs/*   @docs-team</textarea>
+                <div class="space-y-6">
+                  <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">Quick Start Guide</h3>
+                    <div class="space-y-4">
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+                          <span class="w-6 h-6 flex items-center justify-center text-blue-600 font-semibold">1</span>
                         </div>
-                        <div id="query-container" class="flex h-[30%] hidden">
-                            <textarea id="query-input" class="w-full"></textarea>
+                        <div>
+                          <h4 class="font-medium text-gray-900 mb-1">Enter Your CODEOWNERS Rules</h4>
+                          <p class="text-gray-600">Paste your CODEOWNERS file content into the left editor panel or modify the example provided.</p>
                         </div>
+                      </div>
+
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+                          <span class="w-6 h-6 flex items-center justify-center text-blue-600 font-semibold">2</span>
+                        </div>
+                        <div>
+                          <h4 class="font-medium text-gray-900 mb-1">Examine the Syntax Tree</h4>
+                          <p class="text-gray-600">The right panel shows the parsed syntax tree. Click on tree nodes to highlight the corresponding code.</p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+                          <span class="w-6 h-6 flex items-center justify-center text-blue-600 font-semibold">3</span>
+                        </div>
+                        <div>
+                          <h4 class="font-medium text-gray-900 mb-1">Write Tree Queries</h4>
+                          <p class="text-gray-600">Use the query panel to search for specific patterns in your CODEOWNERS file. (See <a href="https://tree-sitter.github.io/tree-sitter/using-parsers#query-syntax">tree-sitter documentation</a> for more details.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-3">Query Examples</h3>
+                    <p class="text-gray-700 mb-4">
+                      Use these example queries to explore your CODEOWNERS file structure:
+                    </p>
+                    <div class="space-y-4">
+                      <div class="bg-gray-100 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Find all owners</h4>
+                        <pre class="text-sm text-gray-800"><code>(owners) @owners</code></pre>
+                      </div>
+
+                      <div class="bg-gray-100 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Find all owners of a given type</h4>
+                        <pre class="text-sm text-gray-800"><code>(owners)(group) @groups</code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            <div id="playground-container" class="bg-white rounded-lg shadow-sm">
+        <header class="flex items-center px-5 py-4 h-[60px] border-b border-gray-300">
+            <div class="flex items-center">
+                <strong>CODEOWNERS Playground</strong>
+            </div>
+        </header>
+
+        <main class="flex flex-col min-h-[600px]">
+            <!-- Query section at the top -->
+            <div class="border-b border-gray-300">
+                <div class="section-label">
+                    Tree-sitter Query
+                </div>
+                <div id="query-container" class="h-[150px]">
+                    <textarea id="query-input" class="w-full">(owners)(group)(group_name) @group</textarea>
+                </div>
+            </div>
+
+            <!-- Code and AST panels below -->
+            <div class="flex flex-1">
+                <div class="flex flex-col flex-1 border-r border-gray-300">
+                    <div class="section-label">
+                        CODEOWNERS File
+                    </div>
+                    <div id="code-container" class="flex flex-1">
+                        <textarea id="code-input" class="w-full">
+# This is the CODEOWNERS file
+# Lines starting with # are comments
+
+# Global owners - default reviewers for everything
+*       @bob
+
+# Frontend code
+*.js    @org/frontend-team
+*.ts    @org/frontend-team
+*.css   alice@example.com
+/web/   @org/web-team
+
+# Backend code
+*.py          @org/backend-team
+/api/         @org/api-team
+/database/    @org/db-team:random(2)
+
+# Documentation
+*.md             @org/docs-team
+/docs/           @org/technical-writers
+/architecture/   @org/architects:all</textarea>
+                    </div>
+                </div>
+                <div class="flex flex-col flex-1">
+                    <div class="section-label">
+                        Syntax Tree
                     </div>
                     <div id="output-container-scroll" class="flex-1 overflow-auto">
                         <pre id="output-container" class="px-3 m-0"></pre>
                     </div>
-                </main>
+                </div>
             </div>
+        </main>
+    </div>
+
         </main>
     </div>
 
